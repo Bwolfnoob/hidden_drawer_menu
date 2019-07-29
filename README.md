@@ -6,11 +6,18 @@ Hidden Drawer Menu is a library for adding a beautiful drawer mode menu feature 
 
 You can use a pre-defined menu or make a fully customized menu.
 
-![Usage of the hidden_drawer_menu widget on an android device](https://github.com/RafaelBarbosatec/hidden_drawer_menu/blob/master/imgs/app2.gif)
+![Usage of the hidden_drawer_menu widget on an android device](https://github.com/RafaelBarbosatec/hidden_drawer_menu/blob/master/imgs/example.gif)
+
+
+[Download APK Example](https://github.com/RafaelBarbosatec/hidden_drawer_menu/blob/master/apk/hidden_drawer.apk)
+
 
 # Use with default menu
 
 ```Dart
+
+import 'package:hidden_drawer_menu/hidden_drawer/hidden_drawer_menu.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -40,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
     itens.add(new ScreenHiddenDrawer(
         new ItemHiddenMenu(
           name: "Screen 1",
-          colorTextUnSelected: Colors.white.withOpacity(0.5),
+          baseStyle: TextStyle( color: Colors.white.withOpacity(0.8), fontSize: 28.0 ),
           colorLineSelected: Colors.teal,
         ),
         FirstSreen()));
@@ -48,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
     itens.add(new ScreenHiddenDrawer(
         new ItemHiddenMenu(
           name: "Screen 2",
-          colorTextUnSelected: Colors.white.withOpacity(0.5),
+          baseStyle: TextStyle( color: Colors.white.withOpacity(0.8), fontSize: 28.0 ),
           colorLineSelected: Colors.orange,
         ),
         SecondSreen()));
@@ -63,6 +70,22 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColorMenu: Colors.blueGrey,
       backgroundColorAppBar: Colors.cyan,
       screens: itens,
+        //    typeOpen: TypeOpen.FROM_RIGHT,
+        //    enableScaleAnimin: true,
+        //    enableCornerAnimin: true,
+        //    slidePercent: 80.0,
+        //    verticalScalePercent: 80.0,
+        //    contentCornerRadius: 10.0,
+        //    iconMenuAppBar: Icon(Icons.menu),
+        //    backgroundContent: DecorationImage((image: ExactAssetImage('assets/bg_news.jpg'),fit: BoxFit.cover),
+        //    whithAutoTittleName: true,
+        //    styleAutoTittleName: TextStyle(color: Colors.red),
+        //    actionsAppBar: <Widget>[],
+        //    backgroundColorContent: Colors.blue,
+        //    elevationAppBar: 4.0,
+        //    tittleAppBar: Center(child: Icon(Icons.ac_unit),),
+        //    enableShadowItensMenu: true,
+        //    backgroundMenu: DecorationImage(image: ExactAssetImage('assets/bg_news.jpg'),fit: BoxFit.cover),
     );
     
   }
@@ -73,6 +96,9 @@ class _MyHomePageState extends State<MyHomePage> {
 # Use with full customization menu
 
 ```Dart
+
+import 'package:hidden_drawer_menu/hidden_drawer/hidden_drawer_menu.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -84,14 +110,29 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: SimpleHiddenDrawer(
-        whithAutoTittleName: true,
         menu: Menu(),
-        screenSelectedBuilder: (position) {
+        screenSelectedBuilder: (position,controller) {
+          
+          Widget screenCurrent;
+          
           switch(position){
-            case 0 : return Screen1(); break;
-            case 1 : return Screen2(); break;
-            case 2 : return Screen3(); break;
+            case 0 : screenCurrent = Screen1(); break;
+            case 1 : screenCurrent = Screen2(); break;
+            case 2 : screenCurrent = Screen3(); break;
           }
+          
+          return Scaffold(
+            backgroundColor: backgroundColorContent,
+            appBar: AppBar(
+              leading: IconButton(
+                  icon: Icon(Icons.menu),
+                  onPressed: () {
+                    controller.toggle();
+                  }),
+            ),
+            body: screenCurrent,
+          );
+          
         },
       ),
     );
@@ -151,13 +192,22 @@ SimpleHiddenDrawerProvider.of(context).setSelectedMenuPosition(0);
 SimpleHiddenDrawerProvider.of(context).toggle();
 ```
 
-## Listern position selected in menu
+## Listen selected position
 
 ```Dart
-SimpleHiddenDrawerProvider.of(context).getPositionSelectedListern().listen((position){
+SimpleHiddenDrawerProvider.of(context).getPositionSelectedListener().listen((position){
   print(position);
 });
 ```
+
+## Listen to menu status (closed,opening,open,closing)
+
+```Dart
+SimpleHiddenDrawerProvider.of(context).getMenuStateListener().listen((state){
+  print(state);
+});
+```
+
 ## If you want to use only the widget responsible for the animation, it is now available as AnimatedDrawerContent
 
 ![Example usage AnimatedDrawerContent](https://github.com/RafaelBarbosatec/hidden_drawer_menu/blob/develop/imgs/exampleAnimated.gif)
@@ -167,9 +217,9 @@ HiddenDrawerController controller = HiddenDrawerController(vsync: this);
 
 return AnimatedDrawerContent(
   controller: controller,
-  whithPaddingTop: false, (optional) default = false // Add padding top in de gesture equals Heigth of the AppBar
-  whithShadow: false,(optional) default = false
-  isDraggable: true,(optional) default = true
+  whithPaddingTop: false, //(optional) default = false // Add padding top in de gesture equals Heigth of the AppBar
+  whithShadow: false, //(optional) default = false
+  isDraggable: true, //(optional) default = true
   child: Screen(),
 );
 ```

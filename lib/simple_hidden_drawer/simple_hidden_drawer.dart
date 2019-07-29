@@ -5,7 +5,6 @@ import 'package:hidden_drawer_menu/simple_hidden_drawer/bloc/simple_hidden_drawe
 import 'package:hidden_drawer_menu/simple_hidden_drawer/provider/simple_hidden_drawer_provider.dart';
 
 class SimpleHiddenDrawer extends StatefulWidget {
-
   /// position initial item selected in menu( start in 0)
   final int initPositionSelected;
 
@@ -31,9 +30,12 @@ class SimpleHiddenDrawer extends StatefulWidget {
   final bool enableCornerAnimin;
 
   /// Function of the recive screen to show
-  final Widget Function(int position, SimpleHiddenDrawerBloc bloc) screenSelectedBuilder;
+  final Widget Function(int position, SimpleHiddenDrawerBloc bloc)
+      screenSelectedBuilder;
 
   final Widget menu;
+
+  final TypeOpen typeOpen;
 
   const SimpleHiddenDrawer({
     Key key,
@@ -47,14 +49,16 @@ class SimpleHiddenDrawer extends StatefulWidget {
     this.menu,
     this.enableScaleAnimin = true,
     this.enableCornerAnimin = true,
-  }) :  assert(screenSelectedBuilder != null),
-        assert(menu != null),super(key: key);
+    this.typeOpen = TypeOpen.FROM_LEFT,
+  })  : assert(screenSelectedBuilder != null),
+        assert(menu != null),
+        super(key: key);
   @override
   _SimpleHiddenDrawerState createState() => _SimpleHiddenDrawerState();
 }
 
-class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer> with TickerProviderStateMixin {
-
+class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer>
+    with TickerProviderStateMixin {
   SimpleHiddenDrawerBloc _bloc;
 
   /// controller responsible to animation of the drawer
@@ -62,9 +66,9 @@ class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-
-    if(_bloc == null) {
-      _bloc = SimpleHiddenDrawerBloc(widget.initPositionSelected,widget.screenSelectedBuilder);
+    if (_bloc == null) {
+      _bloc = SimpleHiddenDrawerBloc(
+          widget.initPositionSelected, widget.screenSelectedBuilder);
       initControllerAnimation();
     }
 
@@ -76,23 +80,21 @@ class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer> with TickerProv
 
   Widget buildLayout() {
     return Stack(
-      children: [
-        widget.menu,
-        createContentDisplay()
-      ],
+      children: [widget.menu, createContentDisplay()],
     );
   }
 
   createContentDisplay() {
     return AnimatedDrawerContent(
       whithPaddingTop: true,
-      controller:_controller,
+      controller: _controller,
       isDraggable: widget.isDraggable,
       slidePercent: widget.slidePercent,
       verticalScalePercent: widget.verticalScalePercent,
       contentCornerRadius: widget.contentCornerRadius,
       enableScaleAnimin: widget.enableScaleAnimin,
       enableCornerAnimin: widget.enableCornerAnimin,
+      typeOpen: widget.typeOpen,
       child: StreamBuilder(
           stream: _bloc.controllers.getScreenSelected,
           initialData: Container(),
@@ -103,16 +105,16 @@ class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer> with TickerProv
   }
 
   void initControllerAnimation() {
-
     _controller = new HiddenDrawerController(
-      vsync: this,
-      animationCurve: widget.curveAnimation
-    );
+        vsync: this, animationCurve: widget.curveAnimation);
 
-    _bloc.controllers.getActionToggle.listen((d){
-      _controller.toggle();
+    _controller.addListener(() {
+      _bloc.controllers.setMenuState(_controller.state);
     });
 
+    _bloc.controllers.getActionToggle.listen((d) {
+      _controller.toggle();
+    });
   }
 
   @override
@@ -120,5 +122,4 @@ class _SimpleHiddenDrawerState extends State<SimpleHiddenDrawer> with TickerProv
     _bloc.dispose();
     super.dispose();
   }
-
 }

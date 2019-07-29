@@ -7,17 +7,17 @@ export 'package:hidden_drawer_menu/controllers/hidden_drawer_controller.dart';
 export 'package:hidden_drawer_menu/simple_hidden_drawer/bloc/simple_hidden_drawer_bloc.dart';
 export 'package:hidden_drawer_menu/simple_hidden_drawer/animated_drawer_content.dart';
 export 'package:hidden_drawer_menu/simple_hidden_drawer/simple_hidden_drawer.dart';
-
-
+export 'package:hidden_drawer_menu/simple_hidden_drawer/provider/simple_hidden_drawer_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hidden_drawer_menu/hidden_drawer/screen_hidden_drawer.dart';
 import 'package:hidden_drawer_menu/menu/hidden_menu.dart';
 import 'package:hidden_drawer_menu/menu/item_hidden_menu.dart';
+import 'package:hidden_drawer_menu/simple_hidden_drawer/animated_drawer_content.dart';
+import 'package:hidden_drawer_menu/simple_hidden_drawer/bloc/simple_hidden_drawer_bloc.dart';
 import 'package:hidden_drawer_menu/simple_hidden_drawer/simple_hidden_drawer.dart';
 
 class HiddenDrawerMenu extends StatelessWidget {
-
   /// List item menu and respective screens
   final List<ScreenHiddenDrawer> screens;
 
@@ -49,6 +49,9 @@ class HiddenDrawerMenu extends StatelessWidget {
   /// Set custom widget in tittleAppBar
   final Widget tittleAppBar;
 
+  /// Decide whether title is centered or not
+  final bool isTitleCentered;
+
   //Menu
   /// Decocator that allows us to add backgroud in the menu(img)
   final DecorationImage backgroundMenu;
@@ -78,6 +81,8 @@ class HiddenDrawerMenu extends StatelessWidget {
   /// anable animation borderRadius
   final bool enableCornerAnimin;
 
+  final TypeOpen typeOpen;
+
   HiddenDrawerMenu({
     this.screens,
     this.initPositionSelected = 0,
@@ -91,6 +96,7 @@ class HiddenDrawerMenu extends StatelessWidget {
     this.styleAutoTittleName,
     this.actionsAppBar,
     this.tittleAppBar,
+    this.isTitleCentered,
     this.enableShadowItensMenu = false,
     this.curveAnimation = Curves.decelerate,
     this.isDraggable = true,
@@ -99,11 +105,11 @@ class HiddenDrawerMenu extends StatelessWidget {
     this.contentCornerRadius = 10.0,
     this.enableScaleAnimin = true,
     this.enableCornerAnimin = true,
+    this.typeOpen = TypeOpen.FROM_LEFT,
   });
 
   @override
   Widget build(BuildContext context) {
-
     return SimpleHiddenDrawer(
       isDraggable: isDraggable,
       curveAnimation: curveAnimation,
@@ -113,33 +119,46 @@ class HiddenDrawerMenu extends StatelessWidget {
       enableCornerAnimin: enableCornerAnimin,
       enableScaleAnimin: enableScaleAnimin,
       menu: buildMenu(),
-      screenSelectedBuilder: (position,bloc){
+      typeOpen: typeOpen,
+      initPositionSelected: initPositionSelected,
+      screenSelectedBuilder: (position, bloc) {
+        List<Widget> actions = List();
+
+        if (typeOpen == TypeOpen.FROM_RIGHT) {
+          actions.add(IconButton(
+              icon: iconMenuAppBar,
+              onPressed: () {
+                bloc.toggle();
+              }));
+        }
+
+        if (actionsAppBar != null) {
+          actions.addAll(actionsAppBar);
+        }
+
         return Scaffold(
           backgroundColor: backgroundColorContent,
-          appBar: AppBar(
-            backgroundColor: backgroundColorAppBar,
+            appBar:screens[position].itemMenu.hideAppBar ? null :  AppBar(
+            backgroundColor: screens[position].itemMenu.appBarColor != null ? screens[position].itemMenu.appBarColor : backgroundColorAppBar,
             elevation: elevationAppBar,
             title: getTittleAppBar(position),
-            leading: new IconButton(
-                icon: iconMenuAppBar,
-                onPressed: () {
-                  bloc.toggle();
-                }),
-            actions: actionsAppBar,
+            centerTitle: isTitleCentered,
+            leading: _buildLeading(bloc),
+            actions: actions,
           ),
           body: screens[position].screen,
         );
       },
     );
-
   }
 
   getTittleAppBar(int position) {
     if (tittleAppBar == null) {
       return whithAutoTittleName
-          ? Text(screens[position].itemMenu.name,
-          style: styleAutoTittleName,
-      )
+          ? Text(
+              screens[position].itemMenu.name,
+              style: styleAutoTittleName,
+            )
           : Container();
     } else {
       return tittleAppBar;
@@ -147,7 +166,6 @@ class HiddenDrawerMenu extends StatelessWidget {
   }
 
   buildMenu() {
-
     List<ItemHiddenMenu> _itensMenu = new List();
 
     screens.forEach((item) {
@@ -160,7 +178,19 @@ class HiddenDrawerMenu extends StatelessWidget {
       backgroundColorMenu: backgroundColorMenu,
       initPositionSelected: initPositionSelected,
       enableShadowItensMenu: enableShadowItensMenu,
+      typeOpen: typeOpen,
     );
   }
 
+  Widget _buildLeading(SimpleHiddenDrawerBloc bloc) {
+    if (typeOpen == TypeOpen.FROM_LEFT) {
+      return IconButton(
+          icon: iconMenuAppBar,
+          onPressed: () {
+            bloc.toggle();
+          });
+    } else {
+      return null;
+    }
+  }
 }
